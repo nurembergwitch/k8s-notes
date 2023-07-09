@@ -1,0 +1,3 @@
+- initcontainers run to completion (exit status code 0)
+- run one at a time
+- there can be several initcontainers, but each runs only once

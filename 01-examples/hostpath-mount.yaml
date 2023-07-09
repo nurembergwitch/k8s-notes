@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  annotations:
+    pv.beta.kubernetes.io/gid: "1234"
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce # means can be used by a single node
+  hostPath:
+    path: /data/persistentvolume # this dir has index.html inside
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: task-pv-pod
+spec:
+  containers:
+    - name: task-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: task-pv-storage # mount the pvc inside the container. So then you can curl localhost from inside the pod
+        - mountPath: /madsfiles
+          name: myhostdir
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim # mounting the pvc inside the pod
+    - name: myhostdir # mounting local path into the pod
+      hostPath:
+        path: /home/mads/kubernetes_shit

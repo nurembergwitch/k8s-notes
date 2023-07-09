@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-1
+  annotations:
+    pv.beta.kubernetes.io/gid: "1234"
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce # means can be used by a single node
+  hostPath:
+    path: /data/persistentvolume # this dir has index.html inside
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-1
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: myscript-configmap
+data:
+  script.sh: |-
+    echo "hello world from alpine"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myscript
+spec:
+  selector:
+    matchLabels:
+      app: myscript
+  template:
+    metadata:
+      labels:
+        app: myscript
+    spec:
+      containers:
+        - name: alpine2
+          image: alpine
+          command:
+          - "/bin/sh"
+          - "-c" 
+          - "apk add --no-cache curl bash && sleep 60m"
+          volumeMounts:
+            - name: hello-script  # mounting the configMap volume into the container
+              mountPath: /scripts
+            - name: pvc-1 # mounting the pvc into the container
+              mountPath: /pvc-1
+            - name: myhostpath # mounting the local dir into the container
+              mountPath: /madsfiles              
+      volumes:
+        - name: hello-script # mounting a configmap into the pod
+          configMap:
+            name: myscript-configmap
+            defaultMode: 0755
+        - name: pvc-1 # mounting a pvc into the pod
+          persistentVolumeClaim:
+            claimName: pvc-1
+        - name: myhostpath # local path into the pod
+          hostPath:
+            path: /home/mads/kubernetes_shit

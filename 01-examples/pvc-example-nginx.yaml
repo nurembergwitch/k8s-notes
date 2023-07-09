@@ -9,7 +9,7 @@ metadata:
 spec:
   storageClassName: manual
   capacity:
-    storage: 10Gi
+    storage: 3Gi
   accessModes:
     - ReadWriteOnce # means can be used by a single node
   hostPath:
@@ -25,17 +25,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 3Gi
+      storage: 1Gi
 ---
 apiVersion: v1
 kind: Pod
 metadata:
   name: task-pv-pod
 spec:
-  volumes:
-    - name: task-pv-storage
-      persistentVolumeClaim:
-        claimName: task-pv-claim # mount the pvc inside the pod
   containers:
     - name: task-pv-container
       image: nginx
@@ -44,4 +40,8 @@ spec:
           name: "http-server"
       volumeMounts:
         - mountPath: /usr/share/nginx/html
-          name: task-pv-storage # mount the pvc inside the container
+          name: task-pv-storage # mount the pvc inside the container. So then you can curl localhost from inside the pod
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim # mount the pvc inside the pod
