@@ -1,0 +1,8 @@
+# this is the patch to apply
+# include it in kustomization.aml with patchesStrategyMerge tag
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mywebapp
+spec:
+  replicas: 2

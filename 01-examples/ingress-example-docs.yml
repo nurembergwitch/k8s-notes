@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+  #namespace: namespace
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    #kubernetes.io/ingress.class: nginx #if done w helm repo
+spec:
+  #ingressClassName: nginx-example-ingress - if omitted, default ingress class is used. Nginx ingress controller can work without this, but it's recommended to specify the class
+  #defaultBackend: this is used in case no rules are specified. It is usually a config option of the ingress controller (nginx). If no rules are specified, spec.defaultBackend must be. If it's not, then handling of requests that don't match any of the rules ill be up to the ingress controller.
+  #ingressClassName: nginx # doesn't seem to be necessary here but docs say it's required since 1.22. Already specified above
+  rules:
+  - host: hello-world.info
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: web
+              port:
+                number: 8080 # ports of the service
+        - path: /v2
+          pathType: Prefix
+          backend:
+            service:
+              name: web2
+              port:
+                number: 8080
+  #defaultBackend:
+    #resource:
+      #apiGroup: k8s.example.com
+      #kind: StorageBucket
+      #name: static-assets

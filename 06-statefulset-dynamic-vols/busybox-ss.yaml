@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: busybox
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: busybox
+  serviceName: "test-service"
+  replicas: 3
+  #podManagementPolicy: Parallel # to create pods simultaneously
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command:
+        - "/bin/sh"
+        - -c
+        - sleep 10000
+        volumeMounts:
+        - name: local-volume
+          mountPath: /usr/test-pod
+  volumeClaimTemplates: # will create a new pvc for each replica
+  - metadata:
+      name: local-volume
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 1Gi

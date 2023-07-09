@@ -1,0 +1,1 @@
+No proper readme bc I keep my notes separately, but I might make a gitbook if I ever got a spare minute.

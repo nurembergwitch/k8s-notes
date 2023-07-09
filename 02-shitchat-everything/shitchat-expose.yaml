@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: shitchat-service
+  #namespace: chat
+spec:
+  type: LoadBalancer
+  selector:
+    app: shitchat
+  ports:
+  - port: 80
+    targetPort: 3000 #deployment port

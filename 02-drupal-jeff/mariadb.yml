@@ -1,0 +1,74 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mariadb-pvc
+  namespace: drupal
+spec:
+  #storageClassName: manual (or other)
+  #volumeMode: Filesystem (or other)
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: mariadb
+  namespace: drupal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb #has to be matched by the service
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+        - name: mariadb
+          image: mariadb:10.5
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_DATABASE
+              value: drupal
+            - name: MYSQL_USER
+              value: drupal
+            - name: MYSQL_PASSWORD
+              value: drupal
+            - name: MYSQL_RANDOM_ROOT_PASSWORD
+              value: 'yes'
+          volumeMounts:
+            - mountPath: /var/lib/mysql/ #important - its documented in the mariadb image 
+              name: database
+          resources:
+            limits:
+              cpu: '2'
+              memory: '512Mi'
+            requests:
+              cpu: '500m'
+              memory: '256Mi'
+      volumes:
+        - name: database
+          persistentVolumeClaim:
+            claimName: mariadb-pvc
+
+---
+kind: Service # after mariadb is deployed, we need this service to get into it. It routes port 3306 requests to the container :3306 which was exposed above
+apiVersion: v1
+metadata:
+  name: mariadb
+  namespace: drupal
+spec:
+  #type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: 3306
+      #nodePort is absent bc it's not a NodePort type of service
+  selector:
+    app: mariadb # this should match the app label selector: matchLabels: app: mariadb

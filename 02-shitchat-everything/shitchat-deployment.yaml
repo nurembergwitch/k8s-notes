@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shitchat
+  #namespace: chat
+spec:
+  selector:
+    matchLabels:
+      app: shitchat #must match service.spec.selector.app
+  template:
+    metadata:
+      labels:
+        app: shitchat #pod label
+    spec:
+      containers:
+      - name: shitchat
+        image: dirt1992/shitchat:latest
+        imagePullPolicy: IfNotPresent
+        # resources:
+        #   limits:
+        #     cpu: '500m'
+        #     memory: '512Mi'
+        ports:
+        - containerPort: 3000 #target port of the service
+        # volumeMounts:
+        # - name: madsu-conf
+        #   mountPath: /madsu
+      imagePullSecrets:
+      - name: regcred
+      # volumes:
+      # - name: madsu-conf # mounting the configMap created with shitchat-env.yaml
+      #   configMap:
+      #     name: shitchat-env

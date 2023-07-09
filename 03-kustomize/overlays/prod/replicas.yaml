@@ -1,0 +1,6 @@
+- op: replace
+  path: /spec/replicas
+  value: 3
+
+# alternative way of patching resources
+# in the kustomization.yaml mainfest instead of patchesStrategicMerge or patches the tag is patchesJson6902

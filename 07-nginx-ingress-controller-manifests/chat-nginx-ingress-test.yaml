@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shitchat
+  namespace: chat
+spec:
+  selector:
+    matchLabels:
+      app: shitchat # target service name (service.spec.selector.app)
+  template:
+    metadata:
+      labels:
+        app: shitchat
+    spec:
+      containers:
+      - name: shitchat
+        image: dirt1992/shitchat:v0.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+  namespace: chat
+spec:
+  type: NodePort # doesn't work w ClusterIP. Apparently NodePort is what works w Ingress now. Proof in ingress docs.
+  selector:
+    app: shitchat # must match deployment.spec.selector.matchLabels.app
+  ports:
+  - port: 80 # service port
+    targetPort: 3000 # deployment port
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat-ingress
+  namespace: chat
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  labels:
+    name: chat-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: madsuchat.com
+    http:
+      paths:
+      - path: / # this path is serviced by the service chat-service on port 80
+        pathType: Prefix
+        backend:
+          service:
+            name: chat-service
+            port:
+              number: 80 
+
+# this one runs with k3s.
+# kkk apply -f nginx-ingress.1.8.0.yaml
+# curl -i madsuchat.com

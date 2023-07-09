@@ -1,0 +1,19 @@
+kind: Pod
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  containers:
+  - name: postgres
+    image: postgres:9.6.17
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+    - containerPort: 80
+    env:
+    - name: POSTGRES_PASSWORD
+      value: "securepassword"
+

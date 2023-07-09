@@ -1,0 +1,21 @@
+# this file specifies which files should be included in the kz, and also common paremeters
+resources: 
+- deployment.yaml
+- service.yaml
+
+commonLabels:
+  app: mykustomapp
+
+commonAnnotations:
+  app: mykustom-annontations
+
+namePrefix:
+  kustom-
+
+nameSuffix:
+  -v1
+# configMapGenerator automatically generates and attaches a configMap to every pod, thus removing the need to have a separate file for a config map
+# configMapGenerator:
+# - name: mykustom-map
+#   env: config.properties
+# commented this out bc i only want the properties to be set in specific environments (dev, prod)

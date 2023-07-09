@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: example-daemonset
+  namespace: default
+  labels:
+    app: example-daemonset
+spec:
+  selector:
+    matchLabels:
+      name: example-daemonset
+  template:
+    metadata:
+      labels:
+        name: example-daemonset
+    spec:
+      tolerations:
+      # these tolerations are to have the daemonset runnable on control-planes
+      # remove them if your control plane nodes should not run pods
+      - key: node-role.kubernetes.io/control-plane # master is deprecated since 1.20
+        effect: NoSchedule
+        operator: Exists
+      containers:
+      - name: example-daemonset
+        image: alpine:latest
+        env:
+        - name: NODE_NAME # you can reference a var like that
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        command:
+        - "bin/sh"
+        - "-c"
+        - "echo 'Hello from '$NODE_NAME $POD_NAME $POD_NAMESPACE $POD_IP $SERVICE_ACCOUNT; while true; do sleep 300s ; done;"
+        resources:
+          limits:
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      terminationGracePeriodSeconds: 30

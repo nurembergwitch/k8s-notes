@@ -1,0 +1,172 @@
+---
+kind: ConfigMap # mounting a config file (so drupal connects to a db)
+apiVersion: v1
+metadata:
+  name: drupal-config
+  namespace: drupal
+data:
+  # Note: This is NOT secure. Don't use this in production!
+  settings.php: |-
+    <?php
+    $databases['default']['default'] = [
+      'database' => 'drupal',
+      'username' => 'drupal',
+      'password' => 'drupal',
+      'prefix' => '',
+      'host' => 'mariadb',
+      'port' => '3306',
+      'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+      'driver' => 'mysql',
+    ];
+    $settings['hash_salt'] = 'OTk4MTYzYWI4N2E2MGIxNjlmYmQ2MTA4';
+    $settings['trusted_host_patterns'] = ['^.+$'];
+    $settings['config_sync_directory'] = 'sites/default/files/config_OTk4MTYzY';
+
+---
+kind: PersistentVolumeClaim #identical to mariadb PersistentVolumeClaim, but with a different metadata name
+apiVersion: v1
+metadata:
+  name: drupal-files-pvc
+  namespace: drupal
+spec:
+  accessModes:
+    - ReadWriteOnce #change to ReadWriteMany after adding nfs. Not it can be mounted in multiple pods
+  resources:
+    requests:
+      storage: 1Gi
+  # storageClassName: nfs-client (got it from $ kc get storageclass, this is the new running nfs storage)
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: drupal
+  namespace: drupal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drupal # This is what should match the service spec.selector.app
+  template:
+    metadata:
+      labels:
+        app: drupal # This is a pod label
+    spec:
+      initContainers: # This isnt necessary for minikube but necessary for linode
+        - name: init-files
+          image: 'drupal:9-apache'
+          command: ['/bin/bash', '-c']
+          args: ['cp -r /var/www/html/sites/default/files /data; chown www-data:www-data /data/ -R']
+          volumeMounts:
+            - mountPath: /data
+              name: drupal-files
+      containers:
+        - name: drupal
+          image: 'drupal:9-apache'
+          ports:
+            - containerPort: 80 # Better to state it explicitly. This is the target port of its service
+          livenessProbe: # not necessary
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 30
+          readinessProbe: # not necessary
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 10
+          volumeMounts: # add these second, after spec -> volumes section
+            - mountPath: /var/www/html/sites/default/
+              name: drupal-settings #this is a configMap volume
+            - mountPath: /var/www/html/sites/default/files/
+              name: drupal-files # this is a normal persistentVolumeClaim volume
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+            requests:
+              cpu: '250m'
+              memory: '256Mi'
+        #- name: another container
+          #image: ....
+          #ports: ...
+      volumes: # add these first, then deployment.spec.template.containers.volumeMounts
+        - name: drupal-settings # mounting a configMap file as a volume
+          configMap:
+            name: drupal-config #thats how it's named in configMap section in the beginning
+        - name: drupal-files
+          persistentVolumeClaim: # mounting a PVC
+            claimName: drupal-files-pvc
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: drupal
+  namespace: drupal
+spec: # shouldn't type be chanegd to ClusterIP? # TO TEST
+  type: NodePort #when its nodeport, then a ClusterIP service, to which NodePort is routed, is automatically created
+  ports:
+    - port: 80 #cluserIP service port
+      targetPort: 80
+      #nodePort: up to 32767 - its randomly assigned otherwise. Makes external traffic accessible 
+  selector:
+    app: drupal # this should match the deployment app label selector: matchLabels: app: drupal
+
+---
+kind: Ingress 
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: drupal
+  namespace: drupal
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod #this section is added after configuring ClusterIssuer cert
+spec:
+  tls: #this section is added after configuring ClusterIssuer cert
+  - hosts:
+    - somewebsite.com
+    secretName: website-tls
+  rules:
+  - host: somewebsite.com
+    http:
+      paths:
+      - backend:
+        serviceName: drupal
+        servicePort: 80
+
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod #there's a staging environment version too, apparently
+spec:
+  acme:
+    email: mads@actuallyexistingemail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-secret-prod 
+    solvers: # ok so this is configurable depending on what kind of cert provider youre using. It has to make sure you actually own the domain so it can connect to the cluster
+    - http01: # dns01 is used if you have external dns integration on your cluster
+      ingress:
+        class: nginx
+---
+#https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+  namespace: drupal
+spec:
+  schedule: "* * * * *" #every min
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: hello
+            image: busybox:1.28
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - date; echo Hello from the Kubernetes cluster
+          restartPolicy: OnFailure

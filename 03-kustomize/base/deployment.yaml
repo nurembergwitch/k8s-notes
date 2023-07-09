@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mywebapp
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: mykustomapp # technically this is unnecessary bc kustomization handles it
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: mycontainer
+        image: "devopsjourney1/mywebapp:latest"
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: mykustom-map # has to match kustomization.configMapGenerator.name
+        resources:
+          requests:
+            memory: "16Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"

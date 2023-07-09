@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap # configmap and secret should be set up before the pod
+metadata:
+  name: mosquitto-config-file
+data:
+  mosquitto.conf: |
+    log_dest stdout
+    log_type all
+    log_timestamp true
+    listener 9001
+    
+---
+apiVersion: v1
+kind: Secret # configmap and secret should be set up before the pod
+metadata:
+  name: mosquitto-secret-file
+type: Opaque
+data:
+  secret.file: |
+    c29tZXN1cGVyc2VjcmV0IGZpbGUgY29udGVudHMgbm9ib2R5IHNob3VsZCBzZWU=
+    
+---
+apiVersion: apps/v1 # at first its just this deployment without any volumes mounted
+kind: Deployment
+metadata:
+  name: mosquitto
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:1.6.2
+          ports:
+            - containerPort: 1883
+          volumeMounts: # after mounting the volumes inside the pod, mount them here, inside the containers
+            - name: mosquitto-conf # name of the volume to mount
+              mountPath: /mosquitto/config
+            - name: mosquitto-secret
+              mountPath: /mosquitto/secret # paths can be created this way
+              readOnly: true
+      volumes: # After you set up configmap and secret, proceed to this part
+        - name: mosquitto-conf #list all the volumes to mount into the pod
+          configMap: # that's all it takes to mount a file into a pod, just listing it here! no need to mess with docker image
+            name: mosquitto-config-file
+        - name: mosquitto-secret
+          secret:
+            secretName: mosquitto-secret-file    
+

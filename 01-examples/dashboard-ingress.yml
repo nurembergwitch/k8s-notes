@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1 #whole yaml is based on the official docs for ingress, web1 and web2 example
+kind: Ingress
+metadata:
+  name: dashboard-ingress
+  namespace: kubernetes-dashboard # $ ks get ns, kc get all -n kubernetes-dashboard (make sure service exists)
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  # tls:
+  # - hosts:
+  #   - dashboard.com
+  #   secretName: tls-for-this-site (it is a separate piece of yaml)
+  #ingressClassName: nginx # doesn't seem to be necessary here but docs say it's required since 1.22
+  rules:
+  - host: dashboard.com # forwarding every request to dashboard.com to the internal service kubernetes-dashboard
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kubernetes-dashboard # $ kc get service -n kubernetes-dashboard
+              port:
+                number: 80 # $ kc get service -n kubernetes-dashboard

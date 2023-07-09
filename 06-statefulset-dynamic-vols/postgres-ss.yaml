@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: postgres-svc
+  replicas: 2
+  #podManagementPolicy: Parallel # to create pods simultaneously
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14.2
+        ports:
+        - containerPort: 5432
+          name: client
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /data
+        env:
+        - name: POSTGRES_PASSWORD
+          value: madsugod
+        - name: POSTGRES_USER
+          value: madsugod
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: default
+spec:
+  selector:
+    app: myapp
+  ports:
+  - port: 5432
+    targetPort: 5432

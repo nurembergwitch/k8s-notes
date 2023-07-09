@@ -1,0 +1,47 @@
+#simple nginx deployment to test your k3s cluster with
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 3 # cluster consists of 3 nodes
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginxdemos/hello
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+      topologySpreadConstraints: # more than 1 pod is never scheduled on the same node
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: nginx
+#if youre using TT's ansible playbook, with which this cluster was created, it comes with MetalLB (`kkk describe service nginx-service`)
+#this LoadBalancer service will expose the app on one of the MetalLB ips in the given range 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: LoadBalancer
+  #ipFamilyPolicy: PreferDualStack # https://kubernetes.io/docs/concepts/services-networking/dual-stack/
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80

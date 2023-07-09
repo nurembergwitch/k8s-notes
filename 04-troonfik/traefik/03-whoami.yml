@@ -1,0 +1,58 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: whoami
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+        - name: whoami
+          image: traefik/whoami
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami
+spec:
+  type: ClusterIP # default but NodePort should also work ig
+  selector:
+    app: whoami
+  ports:
+    - port: 80
+      name: web
+      targetPort: web # named port 80 of the deployment
+      #targetPort: 80
+---
+apiVersion: networking.k8s.io/v1 # traefik is notified when an Ingress type resource is created
+kind: Ingress # literally a normal ingress without anything traefik-specific
+metadata:
+  name: whoami-ingress
+  # annotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  #ingressClassName: traefik # nothing re: this in docs
+  rules:
+  - host: whoamimadsu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: whoami # ingress is routed to the service named whoami on the service's port web (which is 80)
+            port:
+              name: web
+              #number: 80

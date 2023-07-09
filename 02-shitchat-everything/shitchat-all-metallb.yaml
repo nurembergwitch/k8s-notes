@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shitchat
+  namespace: chat
+spec:
+  selector:
+    matchLabels:
+      app: shitchat #must match service.spec.selector.app
+  template:
+    metadata:
+      labels:
+        app: shitchat #pod label
+    spec:
+      containers:
+      - name: shitchat
+        image: dirt1992/shitchat:latest
+        imagePullPolicy: IfNotPresent
+        # resources:
+        #   limits:
+        #     cpu: '500m'
+        #     memory: '512Mi'
+        ports:
+        - containerPort: 3000 #target port of the service
+        volumeMounts:
+        - name: madsu-conf
+          mountPath: /madsu # the dir where shitchat-env data (a file madsu.conf saying hello) will be available
+        - name: pvc-files
+          mountPath: /madsupvcmount # the path itself is available but not the files inside it (from either side)
+      imagePullSecrets:
+      - name: regcred
+      volumes:
+      - name: madsu-conf # mounting the configMap created with shitchat-env.yaml
+        configMap:
+          name: shitchat-env
+      - name: pvc-files # mounting the pvc claim in the pod
+        persistentVolumeClaim:
+          claimName: shitchat-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shitchat-service
+  namespace: chat
+spec:
+  type: LoadBalancer # no need for ingress, app is accessible through metallb assigned ip (usually it's the minikube ip)
+  selector:
+    app: shitchat
+  ports:
+  - port: 80
+    targetPort: 3000 #deployment port
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-storage
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /data/persistentvolume
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shitchat-pvc
+  namespace: chat
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ""
+  volumeName: local-storage

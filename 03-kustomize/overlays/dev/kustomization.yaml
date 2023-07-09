@@ -1,0 +1,11 @@
+resources: # used to be bases:
+- ../../base # inherits the whole base dir kustomization
+
+namespace: dev
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#customizing
+patchesStrategicMerge:
+  - replicas.yaml # copied the header of the base yaml + only added what's to be changed
+# configMapGenerator will be automatically attached
+configMapGenerator:
+- name: mykustom-map
+  env: config.properties

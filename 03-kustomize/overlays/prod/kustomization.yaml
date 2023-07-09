@@ -1,0 +1,16 @@
+resources: # used to be bases:
+- ../../base
+
+namespace: prod
+
+patchesJson6902:
+- target:
+    group: apps # since im patching a deployment
+    version: v1
+    kind: Deployment
+    name: mywebapp
+  path: replicas.yaml
+
+configMapGenerator:
+- name: mykustom-map
+  env: config.properties
