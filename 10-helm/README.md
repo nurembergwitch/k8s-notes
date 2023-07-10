@@ -23,8 +23,9 @@ Pull a chart:  `helm pull --untar prometheus-community/kube-prometheus-stack`. V
 
 # generating yaml to use instead of helm charts
 
-` helm template <release> <path to folder>/<repo/chart> --values=myvalues.yaml`
-` helm template kps prometheus-community/kube-prometheus-stack --version 47.4.0 --namespace monitoring > ./kps.0.66.0.yaml `
+` helm template <release> <path to folder>/<repo/chart> [--values=myvalues.yaml] > helm-release-versionX.yaml`
+or
+` helm template kps prometheus-community/kube-prometheus-stack [--version 47.4.0 --namespace monitoring] > ./kps.0.66.0.yaml `
 
 You could maintain this single yaml instead of an entire dir with charts.
 
@@ -33,3 +34,8 @@ You could maintain this single yaml instead of an entire dir with charts.
 ` helm create <chart name>`
 
 In the templates dir, every file will be essentially sent through a text processor. Default ones are examples.
+
+# some testing
+Created a 1- and 2-madstest.yaml files in templates dir, cleared out values.yaml and default contents of templates dir. 
+In the helm chart dir all helm commands are valid. Like `helm install` or `helm upgrade` or `helm template`
+`helm template .` spits out yaml of 1 and 2-madstest.yaml
