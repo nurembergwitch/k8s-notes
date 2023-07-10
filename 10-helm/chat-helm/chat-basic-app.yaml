@@ -1,0 +1,109 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chat
+  labels:
+    name: chat
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    monitoring: prometheus
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress-nginx
+  labels:
+    name: ingress-nginx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat
+  namespace: chat
+spec:
+  selector:
+    matchLabels:
+      app: chat # target service name (service.spec.selector.app)
+  template:
+    metadata:
+      labels:
+        app: chat
+    spec:
+      containers:
+      - name: chat
+        image: dirt1992/shitchat:v0.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+      # affinity:
+      #   podAntiAffinity:
+        # requiredDuringSchedulingIgnoredDuringExecution:
+          #   - labelSelector:
+          #       matchExpressions:
+          #         - key: app
+          #           operator: In
+          #           values:
+          #             - pyapp
+          #     topologyKey: "kubernetes.io/hostname"
+          # preferredDuringSchedulingIgnoredDuringExecution:
+          # - weight: 100
+          #   podAffinityTerm:
+          #     labelSelector:
+          #       matchExpressions:
+          #         - key: app
+          #           operator: In
+          #           values:
+          #             - chat
+          #     topologyKey: "kubernetes.io/hostname"
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+  namespace: chat
+spec:
+  #type: ClusterIP
+  selector:
+    app: chat # must match deployment.spec.selector.matchLabels.app
+  ports:
+  - port: 3000 # service port
+    targetPort: 3000 # deployment port
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chat-ingress
+  namespace: chat
+  # annotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /$1 # doesnt work with this annotation on
+  labels:
+    name: chat-ingress
+spec:
+  # tls: 
+  # - hosts:
+  #   - madsuchat.com
+  #   secretName: madsuchat # will be created by cert-manager
+  ingressClassName: nginx
+  rules:
+  - host: madsuchat.com
+    http:
+      paths:
+      - path: / # this path is serviced by the service chat-service on port 80
+        pathType: Prefix
+        backend:
+          service:
+            name: chat-service
+            port:
+              number: 3000 
+
+# this one runs with nginx ingress on helm
+# kkk apply -f nginx-ingress.1.8.0.yaml
+# curl -i madsuchat.com
+

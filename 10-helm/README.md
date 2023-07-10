@@ -27,3 +27,9 @@ Pull a chart:  `helm pull --untar prometheus-community/kube-prometheus-stack`. V
 ` helm template kps prometheus-community/kube-prometheus-stack --version 47.4.0 --namespace monitoring > ./kps.0.66.0.yaml `
 
 You could maintain this single yaml instead of an entire dir with charts.
+
+# creating your own chart
+
+` helm create <chart name>`
+
+In the templates dir, every file will be essentially sent through a text processor. Default ones are examples.
