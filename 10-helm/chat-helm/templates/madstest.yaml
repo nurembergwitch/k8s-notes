@@ -1,0 +1,7 @@
+myself:
+    name: Matthew
+    country: Kubernetistan
+    hobbies:
+        - yaml
+        - yet another yaml
+        - writing real yaml
