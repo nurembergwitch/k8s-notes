@@ -39,3 +39,11 @@ In the templates dir, every file will be essentially sent through a text process
 Created a 1- and 2-madstest.yaml files in templates dir, cleared out values.yaml and default contents of templates dir. 
 In the helm chart dir all helm commands are valid. Like `helm install` or `helm upgrade` or `helm template`
 `helm template .` spits out yaml of 1 and 2-madstest.yaml
+
+The idea is: properties in the yaml in templates dir are read off the values.yaml file from the chart root dir. In the templated yaml they're referenced like {{ .Values.some.property }} so in the templated helm chart it corresponds to whatever is in the some: property: <value> section. 
+
+./values.yaml:
+    replicas: 3
+./templates/deployment.yaml
+    spec:
+        replicas: {{ .Values.replicas }} 
