@@ -1,0 +1,5 @@
+grafana:
+  adminPassword: iammadsu
+  service:
+    type: NodePort
+    nodePort: 30002
