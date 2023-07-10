@@ -40,6 +40,7 @@ Created a 1- and 2-madstest.yaml files in templates dir, cleared out values.yaml
 In the helm chart dir all helm commands are valid. Like `helm install` or `helm upgrade` or `helm template`
 `helm template .` spits out yaml of 1 and 2-madstest.yaml
 
+*** 
 The idea is: properties in the yaml in templates dir are read off the values.yaml file from the chart root dir. In the templated yaml they're referenced like {{ .Values.some.property }} so in the templated helm chart it corresponds to whatever is in the some: property: <value> section. 
 
 ./values.yaml:
@@ -47,3 +48,12 @@ The idea is: properties in the yaml in templates dir are read off the values.yam
 ./templates/deployment.yaml
     spec:
         replicas: {{ .Values.replicas }} 
+***
+Various functions for templates: https://helm.sh/docs/chart_template_guide/function_list/
+How to use: 
+    spec:
+      containers:
+      - name: {{ lower .Values.metadata.appname | snakecase | replace " " "-" }}
+***
+Default values, if they're not present in values.yaml, are specified like any other function:
+    image: "{{ default "dirt1992" .Values.image.repository }}/{{ .Values.image.imageName | default "shitchat" }}:{{ .Values.image.tag.dev }}"
