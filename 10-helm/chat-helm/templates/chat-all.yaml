@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.webapp.name | default "chat "}}
+  labels:
+    name: {{ .Values.webapp.name | default "chat "}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.webapp.name | default "chat "}}
+  namespace: {{ .Values.webapp.name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.webapp.name | default "chat "}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.webapp.name | default "chat "}}
+    spec:
+      containers:
+      - name: {{ .Values.webapp.name | default "chat "}}
+        image: "{{ .Values.webapp.repo | default "dirt1992 "}}/{{ .Values.webapp.image | default "shitchat" }}:{{ .Values.webapp.tag | default "v0.2" }}"
+        imagePullPolicy: {{ .Values.webapp.pullPolicy | default "IfNotPresent" }}
+        ports:
+        - containerPort: {{ .Values.contPort | default 3000 }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- if .Values.affinity.antiAffinity }}
+        podAntiAffinity:
+          {{ if eq .Values.affinity.antiAffinity.requiredignored false }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - {{ $.Values.webapp.name | default "chat "}}
+              topologyKey: "kubernetes.io/hostname"
+          {{ end }}
+          {{ if eq .Values.affinity.antiAffinity.preferredignored true }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - {{ $.Values.webapp.name | default "chat "}}
+              topologyKey: "kubernetes.io/hostname"
+          {{ end }}
+        {{- end }}
+      {{- end }}
+      imagePullSecrets:
+      - name: regcred # shouldn't be here but it's a private repo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.webapp.name | default "chat "}}-service
+  namespace: {{ .Values.webapp.name | default "chat "}}
+spec:
+  type: {{ .Values.webapp.name | default "chat "}}
+  selector:
+    app: {{ .Values.webapp.name | default "chat "}}
+  ports:
+  - port: {{ .Values.service.port | default 3000 }}
+    targetPort: {{ .Values.contPort | default 3000 }} 
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.webapp.name | default "chat "}}-ingress
+  namespace: {{ .Values.webapp.name | default "chat "}}
+  labels:
+    name: {{ .Values.webapp.name | default "chat "}}-ingress
+spec:
+  # tls: 
+  # - hosts:
+  #   - madsuchat.com
+  #   secretName: madsuchat # TBA 
+  ingressClassName: nginx
+  rules:
+  - host: madsuchat.com
+    http:
+      paths:
+      - path: / 
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.webapp.name | default "chat "}}-service
+            port:
+              number: {{ .Values.service.port | default 3000 }} 
+
