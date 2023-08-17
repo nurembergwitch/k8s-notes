@@ -14,7 +14,7 @@ service:
 affinity:
   antiAffinity:
     on: true
-    requiredignored: true
+    requiredignored: false
     preferredignored: true
     
   

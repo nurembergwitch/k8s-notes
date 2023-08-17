@@ -3,10 +3,12 @@ kind: Deployment
 metadata:
   name: mywebapp
   namespace: default
+  # labels:
+  #   app: mykustomapp
 spec:
-  selector:
-    matchLabels:
-      app: mykustomapp # technically this is unnecessary bc kustomization handles it
+  # selector:
+  #   matchLabels:
+  #     app: mykustomapp # technically this is unnecessary bc kustomization handles it
   replicas: 1
   template:
     spec:
@@ -15,7 +17,7 @@ spec:
         image: "devopsjourney1/mywebapp:latest"
         ports:
         - containerPort: 80
-        envFrom:
+        envFrom: # it's like mounting a configMap, but shorter, and good for env vars
         - configMapRef:
             name: mykustom-map # has to match kustomization.configMapGenerator.name
         resources:

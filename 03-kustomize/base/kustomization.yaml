@@ -1,21 +1,29 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: arbitrary
 # this file specifies which files should be included in the kz, and also common paremeters
 resources: 
 - deployment.yaml
 - service.yaml
 
 commonLabels:
-  app: mykustomapp
+  app: mykustomapp # with this, you can get rid of labels and selector.matchLabels in other yamls
 
 commonAnnotations:
   app: mykustom-annontations
 
+
+# prefix and suffix make the name look like prefix-metadata.name-suffix
 namePrefix:
   kustom-
 
 nameSuffix:
   -v1
-# configMapGenerator automatically generates and attaches a configMap to every pod, thus removing the need to have a separate file for a config map
+
+# configMapGenerator automatically generates and attaches a configMap to every pod, thus removing the need to have a separate file for a config map. It will be mounted in the container like: nv.From.configMapRef.name.(whatever name the generated config map got). See https://earthly.dev/blog/kubernetes-config-maps/ tldr: it's just an alternative way of using configmaps, when your app relies on env vars instead of entire configs.
 # configMapGenerator:
 # - name: mykustom-map
-#   env: config.properties
-# commented this out bc i only want the properties to be set in specific environments (dev, prod)
+#   env: config.properties # the actual configmap data, that would otherwise be in ConfigMap.data
+#commented this out bc i only want the properties to be set in specific environments (dev, prod)

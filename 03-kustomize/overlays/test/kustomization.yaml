@@ -1,0 +1,35 @@
+resources: 
+- ../../base # inherits the whole base dir kustomization
+
+#overriding the namespace
+namespace: test
+
+patches: 
+  - target:
+      kind: Deployment
+    path: replicas.yaml
+  - target:
+      kind: Deployment
+    path: set_memory.yaml  # specification of 128mi will be overridden with 512mi
+
+configMapGenerator:
+- name: mykustom-map
+  env: config.properties
+
+## according to the docs, configMapGenerator can also accept several files:
+# configMapGenerator:
+# - name: example-configmap-1
+#   files:
+#   - application.properties
+
+## or like this, for several environment files
+# configMapGenerator:
+# - name: example-configmap-1
+#   envs:
+#   - .env
+
+## or from a literal key-value pair:
+# configMapGenerator:
+# - name: example-configmap-2
+#   literals:
+#   - FOO=Bar

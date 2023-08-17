@@ -3,9 +3,11 @@ kind: Service
 metadata:
   name: mywebapp
   namespace: default
+  # labels: # also unnecessary
+  #   app: mykustomapp
 spec:
-  selector:
-    app: mykustomapp # technically this is unnecessary bc kustomization handles it
+  # selector:
+  #   app: mykustomapp # technically this is unnecessary bc kustomization handles it
   ports:
   - port: 80
     protocol: TCP

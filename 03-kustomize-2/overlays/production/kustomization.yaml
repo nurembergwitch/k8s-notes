@@ -1,0 +1,9 @@
+resources: 
+- ../../base
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment # this header is necessary
+spec:
+  replicas: 20

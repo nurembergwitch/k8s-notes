@@ -62,6 +62,7 @@ spec:
               mountPath: /pvc-1
             - name: myhostpath # mounting the local dir into the container
               mountPath: /madsfiles              
+          resources: {}
       volumes:
         - name: hello-script # mounting a configmap into the pod
           configMap:

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless-svc # since it's  a headless service named postgres-headless-svc, the pods are accessible by resolving <pod-name>.postgres-headless-svc from within any other Pod in the same Kubernetes cluster and namespace.
+  namespace: postgres
+spec:
+  clusterIP: None # it has to be a headless service bc postgres is a statefulset
+  ports:
+  - port: 5444
+    #name: postgresql
+    targetPort: 5432
+    protocol: TCP 
+  selector:
+    app: postgres
+    
+#---
+# client service for connecting to any Postgres instance for reads (the app will need an ingress controller targeting THIS service) 
+# 17:53 of the vid: if you really want the Ingress to connect to either of the stateful set services (e.g. postgres-1.postgres-headless.svc.cluster.local), you would have to write the following in the selector: app: postgres; statefulset.kubernetes.io/pod-name: postgres-1.
+# for writes, you must instead connect to the primary: postgres-0.postgres-headless-svc.
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: postgres-read
+#   namespace: postgres
+#   labels:
+#     app: postgres
+#     app.kubernetes.io/name: postgres
+#     readonly: "true"
+# spec:
+#   type: ClusterIP
+#   ports:
+#   - port: 5432
+#     #name: postgresql
+#   selector:
+#     app: postgres

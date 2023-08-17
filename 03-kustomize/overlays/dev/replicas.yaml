@@ -1,4 +1,4 @@
-# this is the patch to apply
+# this is the patch to apply. Copy the header of whatever you're overriding, the override in spec
 # include it in kustomization.aml with patchesStrategyMerge tag
 apiVersion: apps/v1
 kind: Deployment

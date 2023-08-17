@@ -1,8 +1,10 @@
 resources: # used to be bases:
 - ../../base
 
+#overriding the namespace
 namespace: prod
 
+# patchesJson6902 is apparently deprecated, but patches like in test environment works
 patchesJson6902:
 - target:
     group: apps # since im patching a deployment
