@@ -81,6 +81,7 @@ spec:
       containers:
       - name: mongo-express
         image: mongo-express
+        resources: {}
         ports:
         - containerPort: 8081
         env:

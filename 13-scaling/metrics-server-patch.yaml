@@ -1,0 +1,6 @@
+# for bitnami metrics values
+apiService:
+  create: true
+extraArgs:
+  kubelet-preferred-address-types: InternalIP
+  kubelet-insecure-list:

@@ -1,0 +1,25 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp
+  namespace: argo # not the target project ns
+spec: 
+  project: default
+  source:
+    repoURL: https://github.com/nurembergwitch/argodemo.git
+    targetRevision: HEAD # points to the main branch's latest commit
+    path: myapp # path to track within the git repo
+  destination: 
+    server: https://kubernetes.default.svc
+    #namespace: some-ns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true # if the deployment has an unknown field, it will be rejected
+      - CreateNamespace=true # like helm
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

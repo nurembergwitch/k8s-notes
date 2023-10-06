@@ -1,0 +1,5 @@
+prometheusOperator:
+  serviceMonitor:
+    serviceMonitorSelector:
+      matchLabels:
+        prometheus: prom-mads

@@ -1,0 +1,55 @@
+# Essentially, a headless service is a way of configuring DNS in a k8s cluster
+# Each SS pod can be accessed through its domain name - pod-1.its-headless-service.namespace.svc.cluster.local <-- its Stable Network ID
+# However, when configuring Ingress, you need to use a non-headless service for it, because the target service in Ingress must not contain any periods, i.e. you can't write backend.service.name: app-1.headless-service.
+# Since a headless service is DNS, and not a kubernetes entity, it cannot be referenced in Ingress configuration. Only a k8s entity can be.
+
+# When a SS pod is created, k8s controller automatically creates a label for it "statefulset.kubernetes.io/pod-name=[app-name-N]", therefore we can create a service for each pod. If you inspect each SS pod, this label and its value will be present. Refer to 02-services.yaml to see how it's done.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: application-headless
+spec:
+  ports:
+  - port: 8081
+    name: http
+    targetPort: 80
+  clusterIP: None
+  selector:
+    app: application
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: application # this is the actual service that will secure app access. The ingress must point at this service.
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: application
+---
+# Below are services that target specific Pods that only work with corresponding Ingress. If you need to do it for some reason, use it as a template. For this situation, an Ingress that routes traffic to either pods can be configured (refer to 03-ingress.yaml)
+apiVersion: v1
+kind: Service
+metadata:
+  name: app0
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: application
+    statefulset.kubernetes.io/pod-name: application-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: application
+    statefulset.kubernetes.io/pod-name: application-1

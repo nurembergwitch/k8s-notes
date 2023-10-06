@@ -1,0 +1,7 @@
+---
+installCRDs: true
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
+    prometheusInstance: prom-mads # this label has to match the one on Prometheus CRD: .spec.serviceMonitorSelector.matchLabels.prometheus: prom-mads

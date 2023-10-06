@@ -17,10 +17,7 @@ spec:
       - name: shitchat
         image: dirt1992/shitchat:latest
         imagePullPolicy: IfNotPresent
-        # resources:
-        #   limits:
-        #     cpu: '500m'
-        #     memory: '512Mi'
+        resources: {}
         ports:
         - containerPort: 3000 #target port of the service
         volumeMounts:

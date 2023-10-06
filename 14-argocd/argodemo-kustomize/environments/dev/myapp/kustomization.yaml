@@ -1,0 +1,9 @@
+---
+resources:
+  - ../../../base
+
+namespace: dev
+
+images:
+  - name: dirt1992/shitchat
+    newTag: v0.2

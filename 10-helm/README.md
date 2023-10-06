@@ -9,15 +9,15 @@
 
 To change the values:
 ```
-helm upgrade <name> <repo/chart> --set -n <namespace>
-helm upgrade <name> <repo/chart> -f values.yaml -n <namespace>
-helm upgrade <name> --values=myvalues.yaml <repo/chart>/<chart dir> -n <namespace>
+    helm upgrade <name> <repo/chart> --set -n <namespace>
+    helm upgrade <name> <repo/chart> -f values.yaml -n <namespace>
+    helm upgrade <name> --values=myvalues.yaml <repo/chart>/<chart dir> -n <namespace>
 ```
 To get user-supplied values:
-`helm get values <release> -n <namespace>`
+    `helm get values <release> -n <namespace>`
 
 Make sure you specify the parent of the parameter youre changing, for example:
-    helm upgrade monitoring prometheus-community/kube-prometheus-stack --set grafana.adminPassword=admin -n monitoring
+    `helm upgrade monitoring prometheus-community/kube-prometheus-stack --set grafana.adminPassword=admin -n monitoring`
 
 Pull a chart:  `helm pull --untar prometheus-community/kube-prometheus-stack`. Values file comes included + templates.
 

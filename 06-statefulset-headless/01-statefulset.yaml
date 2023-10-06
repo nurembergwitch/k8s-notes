@@ -1,0 +1,108 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: application
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: application
+  serviceName: application-headless # since it's a statefulset, serviceName is required. This service must be headless, i.e. ClusterIP: none
+  template:
+    metadata:
+      labels:
+        app: application
+    spec:
+      initContainers:
+        - name: init-configs
+          image: busybox:1.35.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SERVER
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              sed -e "s/\$SERVER/$(echo $SERVER)/" \
+              /html-template/index.html > /html/index.html
+              cp /html-template/50x.html /html/50x.html
+          volumeMounts:
+            - name: html-template
+              mountPath: /html-template
+            - name: html
+              mountPath: /html
+      containers:
+        - name: application
+          image: nginx:1.23.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html/ 
+      volumes:
+        - name: html-template
+          configMap:
+            name: nginx-template
+        - name: html
+          emptyDir: {}
+  volumeClaimTemplates: # used by statefulsets to create volumes
+    - metadata:
+        name: ss-data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        #storageClassName: "postgres"
+        resources:
+          requests:
+            storage: "1Gi"
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-template
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test page</title>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+      <h1>Сервер $SERVER</h1>
+    </body>
+    </html>
+
+  50x.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Error</title>
+        <style>
+            html {
+                color-scheme: light dark;
+            }
+            
+            body {
+                width: 35em;
+                margin: 0 auto;
+                font-family: Tahoma, Verdana, Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+    <h1>An error occurred.</h1>
+    <p>Sorry, the page you are looking for is currently unavailable.<br/>
+        Please try again later.</p>
+    <p>If you are the system administrator of this resource then you should check
+        the error log for details.</p>
+    <p><em>Faithfully yours, nginx.</em></p>
+    </body>
+    </html>

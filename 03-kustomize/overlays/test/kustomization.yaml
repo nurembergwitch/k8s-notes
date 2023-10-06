@@ -21,15 +21,18 @@ configMapGenerator:
 # - name: example-configmap-1
 #   files:
 #   - application.properties
+#   - something.else
 
 ## or like this, for several environment files
 # configMapGenerator:
 # - name: example-configmap-1
 #   envs:
 #   - .env
+#   - another.env
 
 ## or from a literal key-value pair:
 # configMapGenerator:
 # - name: example-configmap-2
 #   literals:
 #   - FOO=Bar
+#   - BAR=Baz

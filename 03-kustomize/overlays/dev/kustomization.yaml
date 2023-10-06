@@ -12,3 +12,27 @@ patchesStrategicMerge:
 configMapGenerator:
 - name: mykustom-map
   env: config.properties
+
+
+
+## according to the docs, configMapGenerator can also accept several files:
+# configMapGenerator:
+# - name: example-configmap-1
+#   files:
+#   - application.properties
+#   - something.else
+
+
+# this shit can take several env files - just change env to envs and make it a list
+# configMapGenerator:
+# - name: cmg-envs
+#   envs:
+#   - .env
+#   - other.env
+
+# configMapGenerator accepts literal key=value pairs:
+# configMapGenerator:
+# - name: cgm-literal
+#   literals:
+#   - FOO=Bar
+#   - BAR=Baz

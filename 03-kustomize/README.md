@@ -18,3 +18,68 @@ Overlays dir: contains specific environments.
     patches (like in test)
     patchesStrategicMerge (like in dev), but deprecated since Kustomize v5.0.0
     patchesJson6902 (like in prod)
+
+                              WAYS TO GENERATE A CONFIGMAP
+
+This goes in kustomization.yaml
+configMapGenerator:
+- name: mykustom-map
+  env: config.properties
+
+## according to the docs, configMapGenerator can also accept several files:
+# configMapGenerator:
+# - name: example-configmap-1
+#   files:
+#   - application.properties
+#   - something.else
+
+## or like this, for several environment files
+# configMapGenerator:
+# - name: example-configmap-1
+#   envs:
+#   - .env
+#   - another.env
+
+## or from a literal key-value pair:
+# configMapGenerator:
+# - name: example-configmap-2
+#   literals:
+#   - FOO=Bar
+#   - BAR=Baz
+
+
+                           WAYS TO PATCH A RESOURCE
+
+1. This goes in kustomization.yaml. Best way that seems to work.
+patches: 
+  - target:
+      kind: Deployment
+    path: replicas.yaml
+  - target:
+      kind: Deployment
+    path: set_memory.yaml  # specification of 128mi will be overridden with 512mi
+
+...where both paths lead to specificly altered resources. You only need to keep the header and then override just the desired portion.
+
+2. 
+# https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#customizing
+patchesStrategicMerge:
+  - replicas.yaml # copied the header of the base yaml + only added what's to be changed
+
+1 and 2 patch yamls are structured identically. keep the header and only alter the specific thing.
+
+3. Seemingly deprecated way
+
+patchesJson6902:
+- target:
+    group: apps # since im patching a deployment
+    version: v1
+    kind: Deployment
+    name: mywebapp
+  path: replicas.yaml
+
+The patch replicas.yaml looks the following way:
+
+- op: replace
+  path: /spec/replicas
+  value: 3

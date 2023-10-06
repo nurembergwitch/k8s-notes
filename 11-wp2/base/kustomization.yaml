@@ -1,0 +1,22 @@
+resources:
+  - 00-persistentvolume.yaml
+  - 01-wordpress-all.yaml
+  - 02-mysql-all.yaml
+
+secretGenerator:
+- name: mysql-pass 
+  namespace: wp2
+  literals: 
+  - password=wordpressword 
+
+configMapGenerator:
+- name: wp-configmap 
+  namespace: wp2
+  literals:
+  - WORDPRESS_DB_HOST=wordpress-mysql
+  - WORDPRESS_DB_USER=wordpress
+- name: mysql-configmap
+  namespace: wp2
+  literals: 
+  - MYSQL_DATABASE=wordpress 
+  - MYSQL_USER=wordpress

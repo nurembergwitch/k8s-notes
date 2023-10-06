@@ -1,0 +1,50 @@
+---
+# Unless you need a service that targets a particular pod, it is not configured, and only a normal ClusterIP service is made just so general Ingress works.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: application
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx # https://kubernetes.github.io/ingress-nginx/user-guide/basic-usage/
+  rules:
+  - host: myheadlessapp.com
+    http:
+      paths:
+      - path: / 
+        pathType: Prefix
+        backend:
+          service:
+            name: application # not the headless service - the normal ClusterIP one
+            port:
+              name: http
+--- 
+# This is an Ingress that routes traffic to specific pods. For that, you need to configure individual services with selectors that target pod labels - refer to 02-headless-svc.yaml for configuration.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: application-headless
+spec:
+  ingressClassName: system-ingress
+  rules:
+  - host: app0.myheadlessapp.com
+    http:
+      paths:
+        - pathType: Prefix
+          path: /
+          backend:
+            service:
+              name: app0
+              port:
+                name: http
+  - host: app1.myheadlessapp.com
+    http:
+      paths:
+        - pathType: Prefix
+          path: /
+          backend:
+            service:
+              name: app1
+              port:
+                name: http

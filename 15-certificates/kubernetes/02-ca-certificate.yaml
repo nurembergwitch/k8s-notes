@@ -1,0 +1,21 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: mads-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  duration: 43800h # 5 years
+  commonName: madsuchat.com 
+  secretName: madsuchat-com-key-pair # cert-manager will generate a priv key and a certificate and put them in this secret: $ kc get secret -n cert-manager, $ kc describe secret/madsuchat-com-key-pair -n cert-manager
+  # $ kc get secret/madsuchat-com-key-pair -n cert-manager -o yaml
+  dnsNames: # idk about this part
+  - madsuchat.com
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned # referencing the name of 01-clusterissuer-self-signed.yaml
+    kind: ClusterIssuer
+    group: cert-manager.io

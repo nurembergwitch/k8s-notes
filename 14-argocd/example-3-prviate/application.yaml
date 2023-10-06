@@ -1,0 +1,28 @@
+# for private git and docker repos
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-private
+  namespace: argo 
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec: 
+  project: default
+  source:
+    repoURL: git@github.com:nurembergwitch/argodemo-private.git # private repo
+    targetRevision: HEAD # points to the main branch's latest commit
+    path: environments/staging/apps # path in the github repo where Application crds are
+  destination: 
+    server: https://kubernetes.default.svc
+    #namespace: some-ns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - Validate=true 
+      - CreateNamespace=true # like helm
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true

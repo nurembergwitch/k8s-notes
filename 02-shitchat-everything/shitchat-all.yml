@@ -17,8 +17,9 @@ spec:
       - name: shitchat
         image: dirt1992/shitchat:latest
         imagePullPolicy: IfNotPresent
+        resources: {}
         ports:
-        - containerPort: 3000 #target port of the service
+        - containerPort: 3000 # the corresponding service targets this port
         volumeMounts:
         - name: madsu-conf # mounting the configMap inside the container
           mountPath: /madsu
@@ -54,7 +55,7 @@ metadata:
 spec:
   ingressClassName: nginx # https://kubernetes.github.io/ingress-nginx/user-guide/basic-usage/
   rules:
-  - host: madsuchat.com #192.168.1.14.nip.io changed to nip from cloudversity docs LOL DON'T FORGET TO CHECK UR IP
+  - host: madsuchat.com
     http:
       paths:
       - path: / # this path is serviced by the service chat-service on port 80
@@ -63,7 +64,7 @@ spec:
           service:
             name: chat-service
             port:
-              number: 80 
+              number: 80
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -91,3 +92,4 @@ spec:
       storage: 5Gi
   storageClassName: ""
   volumeName: local-storage
+  

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shitchat
+  namespace: foo-k
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shitchat
+  template:
+    metadata:
+      labels:
+        app: shitchat
+    spec:
+      containers:
+      - name: shitchat
+        image: dirt1992/someprivaterepo:v0.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        resources: {}
+      imagePullSecrets: # 
+        - name: regcred

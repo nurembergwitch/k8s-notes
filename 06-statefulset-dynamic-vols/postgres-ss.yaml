@@ -7,7 +7,7 @@ spec:
   selector:
     matchLabels:
       app: postgres
-  serviceName: postgres-svc
+  serviceName: postgres-svc # statefulSets require a specific service
   replicas: 2
   #podManagementPolicy: Parallel # to create pods simultaneously
   template:

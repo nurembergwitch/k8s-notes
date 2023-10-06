@@ -39,6 +39,7 @@ spec:
       containers:
         - name: mosquitto
           image: eclipse-mosquitto:1.6.2
+          resources: {}
           ports:
             - containerPort: 1883
           volumeMounts: # after mounting the volumes inside the pod, mount them here, inside the containers
@@ -53,5 +54,18 @@ spec:
             name: mosquitto-config-file
         - name: mosquitto-secret
           secret:
-            secretName: mosquitto-secret-file    
+            secretName: mosquitto-secret-file
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto-srv 
+spec:
+  kind: NodePort 
+  selector:
+    app: mosquitto
+  ports:
+  - port: 1883
+    targetPort: 1883
+  
 
